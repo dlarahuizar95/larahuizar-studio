@@ -34,7 +34,7 @@ export default async function handler(req, res) {
         'Authorization': `Bearer ${apiKey}`
       },
       body: JSON.stringify({
-        model: 'llama-4-scout-17b-16e-instruct',
+        model: 'meta-llama/llama-4-scout-17b-16e-instruct',
         messages: [
           { role: 'system', content: system },
           { role: 'user', content: userParts }
