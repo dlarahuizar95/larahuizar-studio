@@ -11,11 +11,21 @@ export default async function handler(req, res) {
   try {
     const { system, content } = req.body;
 
-    // Build message content - Groq uses OpenAI-compatible format
-    const userContent = content
-      .filter(block => block.type === 'text')
-      .map(block => block.text)
-      .join('\n');
+    // Build OpenAI-compatible content array with text and images
+    const userParts = content.map(block => {
+      if (block.type === 'text') {
+        return { type: 'text', text: block.text };
+      }
+      if (block.type === 'image') {
+        return {
+          type: 'image_url',
+          image_url: {
+            url: `data:${block.source.media_type};base64,${block.source.data}`
+          }
+        };
+      }
+      return { type: 'text', text: String(block) };
+    });
 
     const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
       method: 'POST',
@@ -24,10 +34,10 @@ export default async function handler(req, res) {
         'Authorization': `Bearer ${apiKey}`
       },
       body: JSON.stringify({
-        model: 'llama-3.3-70b-versatile',
+        model: 'llama-4-scout-17b-16e-instruct',
         messages: [
           { role: 'system', content: system },
-          { role: 'user', content: userContent }
+          { role: 'user', content: userParts }
         ],
         max_tokens: 1500
       })
