@@ -1,0 +1,812 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LaraHuizar.Studio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --gold: #d4a853;
+    --gold-light: #e8bc69;
+    --bg: #0a0a0a;
+    --bg-panel: #111111;
+    --bg-deep: #0d0d0d;
+    --border: #1e1e1e;
+    --border-hover: #2a2a2a;
+    --text: #f0ede8;
+    --text-muted: #666;
+    --text-dim: #444;
+    --text-hint: #555;
+  }
+
+  html, body {
+    height: 100%;
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ─── PASSWORD SCREEN ─── */
+  #lockScreen {
+    position: fixed;
+    inset: 0;
+    background: var(--bg);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    gap: 0;
+    transition: opacity 0.4s ease;
+  }
+
+  #lockScreen.fade-out {
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .lock-logo {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 2.2rem;
+    letter-spacing: -0.04em;
+    color: var(--text);
+    margin-bottom: 0.25rem;
+  }
+
+  .lock-logo span { color: var(--gold); }
+
+  .lock-sub {
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 2.5rem;
+  }
+
+  .lock-box {
+    background: var(--bg-panel);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 2rem;
+    width: 320px;
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+  }
+
+  .lock-label {
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+
+  .lock-input {
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    padding: 0.7rem 1rem;
+    outline: none;
+    transition: border-color 0.15s;
+    letter-spacing: 0.05em;
+  }
+
+  .lock-input:focus { border-color: var(--gold); }
+  .lock-input.error { border-color: #e24b4a; animation: shake 0.3s ease; }
+
+  @keyframes shake {
+    0%,100% { transform: translateX(0); }
+    25% { transform: translateX(-6px); }
+    75% { transform: translateX(6px); }
+  }
+
+  .lock-btn {
+    width: 100%;
+    padding: 0.75rem;
+    background: var(--gold);
+    color: #0a0a0a;
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 13px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.15s;
+    margin-top: 0.25rem;
+  }
+
+  .lock-btn:hover { background: var(--gold-light); }
+
+  .lock-error {
+    font-size: 12px;
+    color: #e24b4a;
+    text-align: center;
+    min-height: 16px;
+  }
+
+  /* ─── MAIN APP ─── */
+  #app {
+    display: none;
+    min-height: 100vh;
+  }
+
+  #app.visible { display: block; }
+
+  .studio {
+    max-width: 920px;
+    margin: 0 auto;
+    padding: 2rem 1.5rem 5rem;
+  }
+
+  .header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    margin-bottom: 2.5rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .logo {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 1.5rem;
+    letter-spacing: -0.03em;
+  }
+
+  .logo span { color: var(--gold); }
+
+  .badge {
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    padding: 4px 10px;
+    border: 1px solid var(--border);
+    border-radius: 20px;
+  }
+
+  .grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.25rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .panel {
+    background: var(--bg-panel);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.25rem;
+  }
+
+  .panel-full {
+    background: var(--bg-panel);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.25rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .panel-label {
+    font-family: 'Syne', sans-serif;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--text-hint);
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .panel-label::before {
+    content: '';
+    width: 14px;
+    height: 1px;
+    background: var(--text-hint);
+  }
+
+  /* Upload */
+  .upload-zone {
+    border: 1.5px dashed #2a2a2a;
+    border-radius: 8px;
+    padding: 2rem 1rem;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+    min-height: 190px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+  }
+
+  .upload-zone:hover { border-color: var(--gold); background: #0d0d00; }
+  .upload-zone.has-image { border-style: solid; border-color: #2a2a2a; padding: 0; overflow: hidden; }
+  .upload-zone img { width: 100%; height: 190px; object-fit: contain; border-radius: 6px; }
+  .upload-zone input[type="file"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+
+  .upload-icon {
+    width: 38px; height: 38px;
+    border: 1.5px solid #2a2a2a;
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px; color: var(--text-hint);
+    margin-bottom: 4px;
+  }
+
+  .upload-text { font-size: 13px; color: var(--text-hint); line-height: 1.55; }
+  .upload-text strong { color: var(--gold); font-weight: 500; }
+
+  /* Fields */
+  .field-group { display: flex; flex-direction: column; gap: 5px; margin-bottom: 0.8rem; }
+  .field-group:last-child { margin-bottom: 0; }
+
+  label { font-size: 10.5px; font-weight: 500; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-hint); }
+
+  input[type="text"], textarea, select {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13.5px;
+    padding: 0.6rem 0.85rem;
+    width: 100%;
+    outline: none;
+    transition: border-color 0.15s;
+    resize: none;
+  }
+
+  input[type="text"]:focus, textarea:focus, select:focus { border-color: var(--gold); }
+  select option { background: #111; }
+  textarea { min-height: 78px; line-height: 1.5; }
+
+  /* Chips */
+  .format-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+
+  .chip {
+    padding: 5px 13px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    border: 1px solid #222;
+    color: var(--text-muted);
+    background: transparent;
+    transition: all 0.15s;
+    user-select: none;
+  }
+
+  .chip:hover { border-color: var(--gold); color: var(--gold); }
+  .chip.active { background: var(--gold); border-color: var(--gold); color: #0a0a0a; }
+
+  .style-chips { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+
+  .style-chip {
+    padding: 8px 10px;
+    border-radius: 6px;
+    font-size: 11.5px;
+    font-weight: 500;
+    cursor: pointer;
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    background: var(--bg);
+    transition: all 0.15s;
+    user-select: none;
+    text-align: center;
+  }
+
+  .style-chip:hover { border-color: var(--gold); color: var(--gold); }
+  .style-chip.active { background: #1a1400; border-color: var(--gold); color: var(--gold); }
+
+  /* CTA */
+  .cta-btn {
+    width: 100%;
+    padding: 1rem;
+    background: var(--gold);
+    color: #0a0a0a;
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 14px;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.15s;
+    margin-top: 1.25rem;
+  }
+
+  .cta-btn:hover { background: var(--gold-light); transform: translateY(-1px); }
+  .cta-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+  /* Results */
+  .results-section { margin-top: 2rem; display: none; }
+  .results-section.visible { display: block; }
+
+  .results-header {
+    font-family: 'Syne', sans-serif;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .results-header::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+  .prompt-card {
+    background: var(--bg-deep);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1.25rem;
+    margin-bottom: 1rem;
+  }
+
+  .prompt-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.85rem;
+  }
+
+  .format-tag {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 3px 10px;
+    border-radius: 20px;
+    background: #1a1400;
+    color: var(--gold);
+    border: 1px solid #2a1e00;
+  }
+
+  .copy-btn {
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--text-hint);
+    background: transparent;
+    border: 1px solid #222;
+    border-radius: 20px;
+    padding: 4px 12px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .copy-btn:hover { color: var(--text); border-color: #555; }
+  .copy-btn.copied { color: #4caf50; border-color: #4caf50; }
+
+  .prompt-text { font-size: 13px; line-height: 1.65; color: #999; font-style: italic; }
+  .prompt-text em { color: var(--gold); font-style: normal; font-weight: 500; }
+
+  .prompt-tip {
+    margin-top: 0.75rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid #1a1a1a;
+    font-size: 11px;
+    color: var(--text-hint);
+  }
+
+  .prompt-tip strong { color: var(--gold); font-weight: 500; }
+
+  .loading-state {
+    text-align: center;
+    padding: 2.5rem;
+    color: var(--text-hint);
+    font-size: 13px;
+  }
+
+  .spinner {
+    width: 24px; height: 24px;
+    border: 2px solid #222;
+    border-top-color: var(--gold);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin: 0 auto 0.75rem;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .usage-tip {
+    font-size: 11.5px;
+    color: var(--text-dim);
+    line-height: 1.6;
+    padding: 0.75rem 1rem;
+    background: var(--bg-deep);
+    border-left: 2px solid var(--gold);
+    border-radius: 0 6px 6px 0;
+    margin-top: 1rem;
+  }
+
+  .char-count { font-size: 10px; color: var(--text-dim); text-align: right; margin-top: 2px; }
+
+  /* Footer */
+  .footer {
+    margin-top: 4rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--border);
+    text-align: center;
+    font-size: 11px;
+    color: var(--text-dim);
+    letter-spacing: 0.04em;
+    line-height: 1.8;
+  }
+
+  .footer a { color: var(--text-hint); text-decoration: none; transition: color 0.15s; }
+  .footer a:hover { color: var(--gold); }
+
+  @media (max-width: 640px) {
+    .grid-2 { grid-template-columns: 1fr; }
+    .style-chips { grid-template-columns: 1fr 1fr; }
+    .lock-box { width: calc(100vw - 2rem); }
+  }
+</style>
+</head>
+<body>
+
+<!-- ── LOCK SCREEN ── -->
+<div id="lockScreen">
+  <div class="lock-logo">LaraHuizar<span>.</span>Studio</div>
+  <div class="lock-sub">Creative Brief Generator</div>
+  <div class="lock-box">
+    <div class="lock-label">Contraseña de acceso</div>
+    <input type="password" class="lock-input" id="lockInput" placeholder="••••••••••••" autocomplete="off" />
+    <div class="lock-error" id="lockError"></div>
+    <button class="lock-btn" id="lockBtn">Entrar →</button>
+  </div>
+</div>
+
+<!-- ── MAIN APP ── -->
+<div id="app">
+<div class="studio">
+
+  <div class="header">
+    <div class="logo">LaraHuizar<span>.</span>Studio</div>
+    <div class="badge">Creative Brief Generator</div>
+  </div>
+
+  <!-- Row 1: Upload + Producto -->
+  <div class="grid-2">
+    <div class="panel">
+      <div class="panel-label">Foto del producto</div>
+      <div class="upload-zone" id="uploadZone">
+        <input type="file" accept="image/*" id="fileInput" />
+        <div class="upload-icon">+</div>
+        <div class="upload-text">
+          <strong>Sube tu producto</strong><br>
+          PNG · JPG · WEBP<br>fondo blanco ideal
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-label">Datos del producto</div>
+      <div class="field-group">
+        <label>Nombre del producto</label>
+        <input type="text" id="productName" placeholder="Ej. Mezcal Alipús San Andres" />
+      </div>
+      <div class="field-group">
+        <label>Categoría</label>
+        <select id="category">
+          <option value="">— Selecciona —</option>
+          <option>Bebidas alcohólicas</option>
+          <option>Bebidas no alcohólicas</option>
+          <option>Alimentos / snacks</option>
+          <option>Restaurante / cadena</option>
+          <option>Beauty / cuidado personal</option>
+          <option>Moda / accesorios</option>
+          <option>Tecnología</option>
+          <option>Otro</option>
+        </select>
+      </div>
+      <div class="field-group">
+        <label>Tagline / mensaje clave</label>
+        <input type="text" id="tagline" placeholder="Ej. El alma de Oaxaca en cada sorbo" />
+      </div>
+    </div>
+  </div>
+
+  <!-- Row 2: Formatos -->
+  <div class="panel-full">
+    <div class="panel-label">Formatos de publicidad</div>
+    <div class="format-chips">
+      <div class="chip active" data-format="Billboard OOH (14×48 ft, horizontal landscape)">Espectacular OOH</div>
+      <div class="chip" data-format="Urban mupi poster (160×240 cm, vertical portrait)">Mupi urbano</div>
+      <div class="chip" data-format="BTL floor display / point of sale standee">BTL / punto de venta</div>
+      <div class="chip" data-format="Instagram Story (9:16 vertical, mobile-first)">IG Story</div>
+      <div class="chip" data-format="Instagram Feed (1:1 square format)">IG Feed</div>
+      <div class="chip" data-format="Highway roadside billboard (large format, wide angle)">Valla carretera</div>
+    </div>
+  </div>
+
+  <!-- Row 3: Estilo + Escena -->
+  <div class="grid-2">
+    <div class="panel">
+      <div class="panel-label">Estilo visual</div>
+      <div class="style-chips">
+        <div class="style-chip active" data-style="cinematic, dramatic lighting, film photography aesthetic, 35mm">Cinematográfico</div>
+        <div class="style-chip" data-style="luxury editorial, high fashion photography, minimal negative space, elegant">Luxury / editorial</div>
+        <div class="style-chip" data-style="vibrant street art, urban graffiti background, bold saturated colors">Urbano / callejero</div>
+        <div class="style-chip" data-style="natural organic, earthy tones, outdoor lifestyle, raw textures">Natural / orgánico</div>
+        <div class="style-chip" data-style="bold geometric graphic design, Swiss grid typography, flat illustration">Gráfico / geométrico</div>
+        <div class="style-chip" data-style="dark moody, neon accents, night city atmosphere, cyberpunk-adjacent">Dark / nocturno</div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-label">Ambiente / escenario</div>
+      <div class="field-group">
+        <label>Describe la escena ideal</label>
+        <textarea id="scene" placeholder="Ej. Desierto de Oaxaca al atardecer, luz dorada rasante, agave en primer plano, atmósfera mística..."></textarea>
+        <div class="char-count" id="charCount">0 / 200</div>
+      </div>
+      <div class="field-group">
+        <label>Paleta de colores dominante</label>
+        <input type="text" id="palette" placeholder="Ej. dorado, terracota, azul medianoche" />
+      </div>
+    </div>
+  </div>
+
+  <button class="cta-btn" id="generateBtn" disabled>Generar prompts de campaña →</button>
+
+  <!-- Results -->
+  <div class="results-section" id="resultsSection">
+    <div class="results-header">Prompts generados</div>
+    <div id="resultsContainer"></div>
+    <div class="usage-tip">
+      💡 <strong style="color:var(--gold);font-weight:500;">Cómo usar:</strong>
+      Copia el prompt y pégalo en <strong style="color:#aaa;font-weight:400;">Midjourney</strong>, <strong style="color:#aaa;font-weight:400;">DALL-E 3</strong>, <strong style="color:#aaa;font-weight:400;">Ideogram</strong> o <strong style="color:#aaa;font-weight:400;">Adobe Firefly</strong>.
+      Para Midjourney agrega al final: <em style="color:#888;">--ar 16:9 --style raw --v 6</em>
+    </div>
+  </div>
+
+  <div class="footer">
+    <div>LaraHuizar<span style="color:var(--gold);">.</span>Studio — Creative Brief Generator</div>
+    <div style="margin-top:4px;">Maintained by <a href="mailto:dlarahuizar@gmail.com">dlarahuizar@gmail.com</a></div>
+  </div>
+
+</div>
+</div>
+
+<script>
+  // ─── CONFIG ───
+  // API key is loaded from environment variable ANTHROPIC_API_KEY via api/generate endpoint
+  // Password is checked client-side (obfuscated)
+  const ACCESS_HASH = btoa('FamiliaLara0514');
+
+  // ─── LOCK ───
+  const lockScreen = document.getElementById('lockScreen');
+  const lockInput = document.getElementById('lockInput');
+  const lockBtn = document.getElementById('lockBtn');
+  const lockError = document.getElementById('lockError');
+  const app = document.getElementById('app');
+
+  function tryUnlock() {
+    const val = lockInput.value.trim();
+    if (btoa(val) === ACCESS_HASH) {
+      lockScreen.classList.add('fade-out');
+      setTimeout(() => {
+        lockScreen.style.display = 'none';
+        app.classList.add('visible');
+      }, 400);
+    } else {
+      lockInput.classList.add('error');
+      lockError.textContent = 'Contraseña incorrecta';
+      setTimeout(() => {
+        lockInput.classList.remove('error');
+        lockError.textContent = '';
+      }, 1500);
+    }
+  }
+
+  lockBtn.addEventListener('click', tryUnlock);
+  lockInput.addEventListener('keydown', e => { if (e.key === 'Enter') tryUnlock(); });
+
+  // ─── APP STATE ───
+  let productImageBase64 = null;
+  let selectedFormats = ['Billboard OOH (14×48 ft, horizontal landscape)'];
+  let selectedStyle = 'cinematic, dramatic lighting, film photography aesthetic, 35mm';
+
+  // Upload
+  const fileInput = document.getElementById('fileInput');
+  const uploadZone = document.getElementById('uploadZone');
+
+  fileInput.addEventListener('change', e => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = ev => {
+      productImageBase64 = ev.target.result;
+      uploadZone.classList.add('has-image');
+      uploadZone.innerHTML = `<img src="${ev.target.result}" alt="producto" /><input type="file" accept="image/*" id="fileInput2" style="position:absolute;inset:0;opacity:0;cursor:pointer;" />`;
+      document.getElementById('fileInput2').addEventListener('change', e2 => {
+        const f2 = e2.target.files[0];
+        if (!f2) return;
+        const r2 = new FileReader();
+        r2.onload = ev2 => {
+          productImageBase64 = ev2.target.result;
+          uploadZone.querySelector('img').src = ev2.target.result;
+          checkReady();
+        };
+        r2.readAsDataURL(f2);
+      });
+      checkReady();
+    };
+    reader.readAsDataURL(file);
+  });
+
+  // Char count
+  const sceneTA = document.getElementById('scene');
+  const charCount = document.getElementById('charCount');
+  sceneTA.addEventListener('input', () => {
+    const l = sceneTA.value.length;
+    if (l > 200) sceneTA.value = sceneTA.value.slice(0, 200);
+    charCount.textContent = `${Math.min(l,200)} / 200`;
+  });
+
+  // Format chips
+  document.querySelectorAll('.chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      chip.classList.toggle('active');
+      const fmt = chip.dataset.format;
+      selectedFormats = chip.classList.contains('active')
+        ? [...selectedFormats, fmt]
+        : selectedFormats.filter(f => f !== fmt);
+      checkReady();
+    });
+  });
+
+  // Style chips
+  document.querySelectorAll('.style-chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      document.querySelectorAll('.style-chip').forEach(c => c.classList.remove('active'));
+      chip.classList.add('active');
+      selectedStyle = chip.dataset.style;
+    });
+  });
+
+  function checkReady() {
+    const name = document.getElementById('productName').value.trim();
+    document.getElementById('generateBtn').disabled = !(productImageBase64 && name && selectedFormats.length > 0);
+  }
+
+  document.getElementById('productName').addEventListener('input', checkReady);
+  document.getElementById('category').addEventListener('change', checkReady);
+
+  // ─── GENERATE ───
+  document.getElementById('generateBtn').addEventListener('click', async () => {
+    const name = document.getElementById('productName').value.trim();
+    const category = document.getElementById('category').value;
+    const tagline = document.getElementById('tagline').value.trim();
+    const scene = sceneTA.value.trim();
+    const palette = document.getElementById('palette').value.trim();
+
+    const generateBtn = document.getElementById('generateBtn');
+    const resultsSection = document.getElementById('resultsSection');
+    const resultsContainer = document.getElementById('resultsContainer');
+
+    generateBtn.disabled = true;
+    generateBtn.textContent = 'Generando...';
+    resultsSection.classList.add('visible');
+    resultsContainer.innerHTML = `<div class="loading-state"><div class="spinner"></div>Construyendo prompts para ${selectedFormats.length} formato(s)...</div>`;
+
+    const systemPrompt = `Eres un director creativo senior especializado en publicidad exterior (OOH) y BTL para el mercado latinoamericano. Generas prompts ultra-precisos para AI image generation (Midjourney/DALL-E/Firefly) que sirven como referencias creativas para agencias.
+
+Para cada formato publicitario genera un prompt en inglés optimizado. El prompt debe:
+1. Describir la composición exacta (posición del producto, encuadre, ángulo de cámara)
+2. Especificar iluminación y atmósfera
+3. Incluir el contexto/escena de fondo
+4. Mencionar el estilo fotográfico/artístico
+5. Indicar las proporciones implícitas del formato
+6. Ser accionable — máximo 120 palabras
+
+Responde SOLO con JSON válido sin markdown ni explicaciones:
+{"prompts":[{"format":"nombre","ratio":"ratio","prompt":"prompt en inglés","tip_agencia":"consejo corto en español máx 15 palabras"}]}`;
+
+    const userMsg = `Producto: ${name}
+Categoría: ${category || 'no especificada'}
+Tagline: ${tagline || 'no especificado'}
+Estilo visual: ${selectedStyle}
+Escena/ambiente: ${scene || 'libre, que evoque el producto'}
+Paleta: ${palette || 'coherente con la categoría'}
+Formatos: ${selectedFormats.join(', ')}
+
+Genera un prompt creativo para cada formato. Si ves la imagen del producto, úsala para describir sus colores, forma y packaging en los prompts.`;
+
+    try {
+      const content = [
+        { type: 'text', text: userMsg }
+      ];
+
+      if (productImageBase64) {
+        const mt = productImageBase64.startsWith('data:image/png') ? 'image/png'
+                 : productImageBase64.startsWith('data:image/webp') ? 'image/webp'
+                 : 'image/jpeg';
+        content.unshift({
+          type: 'image',
+          source: { type: 'base64', media_type: mt, data: productImageBase64.split(',')[1] }
+        });
+      }
+
+      const res = await fetch('/api/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ system: systemPrompt, content })
+      });
+
+      const data = await res.json();
+      if (data.error) throw new Error(data.error);
+
+      const raw = (data.content || []).map(b => b.text || '').join('');
+      const clean = raw.replace(/```json|```/g, '').trim();
+      const parsed = JSON.parse(clean);
+
+      resultsContainer.innerHTML = '';
+      parsed.prompts.forEach(item => {
+        const card = document.createElement('div');
+        card.className = 'prompt-card';
+        const safePrompt = item.prompt.replace(/"/g, '&quot;').replace(/`/g, "'");
+        card.innerHTML = `
+          <div class="prompt-card-header">
+            <div style="display:flex;align-items:center;gap:8px;">
+              <span class="format-tag">${item.format}</span>
+              <span style="font-size:11px;color:var(--text-dim);">${item.ratio}</span>
+            </div>
+            <button class="copy-btn" data-prompt="${safePrompt}">Copiar prompt</button>
+          </div>
+          <div class="prompt-text">${highlightPrompt(item.prompt)}</div>
+          <div class="prompt-tip"><strong>→ Para agencia:</strong> ${item.tip_agencia}</div>
+        `;
+        card.querySelector('.copy-btn').addEventListener('click', function() {
+          navigator.clipboard.writeText(this.dataset.prompt).then(() => {
+            this.textContent = '✓ Copiado';
+            this.classList.add('copied');
+            setTimeout(() => { this.textContent = 'Copiar prompt'; this.classList.remove('copied'); }, 2000);
+          });
+        });
+        resultsContainer.appendChild(card);
+      });
+
+    } catch (err) {
+      resultsContainer.innerHTML = `<div class="loading-state" style="color:#e24b4a;">Error al generar prompts.<br><small style="color:#555;">${err.message}</small></div>`;
+    }
+
+    generateBtn.disabled = false;
+    generateBtn.textContent = 'Generar prompts de campaña →';
+    checkReady();
+  });
+
+  function highlightPrompt(text) {
+    const kw = ['product','bottle','label','foreground','background','lighting','golden hour','cinematic','editorial','dramatic','moody','vibrant','luxury','minimal','billboard','outdoor','urban','night','desert','photorealistic','packaging','brand','composition'];
+    let out = text;
+    kw.forEach(k => {
+      out = out.replace(new RegExp(`\\b(${k})\\b`, 'gi'), '<em>$1</em>');
+    });
+    return out;
+  }
+</script>
+</body>
+</html>
