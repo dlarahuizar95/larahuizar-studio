@@ -11,6 +11,22 @@ export default async function handler(req, res) {
   try {
     const { system, content } = req.body;
 
+    // Convert Anthropic-style content blocks to Gemini parts
+    const parts = content.map(block => {
+      if (block.type === 'text') {
+        return { text: block.text };
+      }
+      if (block.type === 'image') {
+        return {
+          inline_data: {
+            mime_type: block.source.media_type,
+            data: block.source.data
+          }
+        };
+      }
+      return { text: String(block) };
+    });
+
     const response = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
       {
@@ -18,7 +34,7 @@ export default async function handler(req, res) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           system_instruction: { parts: [{ text: system }] },
-          contents: [{ role: 'user', parts: [{ text: content }] }]
+          contents: [{ role: 'user', parts }]
         })
       }
     );
